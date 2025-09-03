@@ -326,8 +326,8 @@ router.post("/login", async (req, res) => {
 //forgot password
 router.post("/forgotpassword", async (req, res) => {
   try {
-    const { email } = req.body;
-    const user = await User.findOne({ email });
+    const { username } = req.body;
+    const user = await User.findOne({ username });
     if (!user) {
       return res.status(400).json({ message: "User not found" });
     }
@@ -428,14 +428,14 @@ router.post("/forgotpassword", async (req, res) => {
                     
                     <div class="footer">
                         <p>Thank you!</p>
-                        <p>Team Swaedha</p>
+                        <p>Team Swamedha</p>
                     </div>
                 </div>
             </div>
         </body>
         </html>`;
     const mailResponse = await mailUtility(
-      email,
+      user.email,
       "Password Reset",
       mailContent
     );
@@ -454,8 +454,8 @@ router.post("/forgotpassword", async (req, res) => {
 //change password
 router.post("/changepassword", async (req, res) => {
   try {
-    const { email, currentPassword, newPassword } = req.body;
-    const user = await User.findOne({ email });
+    const { username, currentPassword, newPassword } = req.body;
+    const user = await User.findOne({ username });
     if (!user) {
       return res.status(400).json({ message: "User not found" });
     }

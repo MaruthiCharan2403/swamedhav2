@@ -2,9 +2,11 @@ import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function PasswordReset() {
-    const [email, setEmail] = useState("");
+    const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [message, setMessage] = useState("");
@@ -13,16 +15,18 @@ export default function PasswordReset() {
     const navigate = useNavigate();
 
     const token = searchParams.get("token");
-    const isReset = token !== null; // Check if we're resetting the password
+    const urlUsername = searchParams.get("username");
+    const email = searchParams.get("email");
+    const isReset = token !== null;
 
     const handleForgotPassword = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const { data } = await axios.post("/api/user/forgotpassword", { email });
+            const { data } = await axios.post("/api/user/forgotpassword", { username });
             setMessage(data.message);
         } catch (error) {
-            setMessage(error.response?.data?.message || "Something went wrong. Try again.");
+            setMessage("Something went wrong. Try again.");
         }
         setLoading(false);
     };
@@ -31,35 +35,43 @@ export default function PasswordReset() {
         e.preventDefault();
         if (password !== confirmPassword) {
             setMessage("Passwords do not match!");
+            toast.error("Passwords do not match!");
             return;
         }
-        const email = searchParams.get("email");
         setLoading(true);
         try {
-            const { data } = await axios.post("/api/user/resetpassword", { email, token, password });
+            const { data } = await axios.post("/api/user/resetpassword", { 
+                email,
+                token, 
+                password 
+            });
             setMessage(data.message);
-            navigate("/login");
+            toast.success(data.message || "Password reset successful!");
+            setTimeout(() => navigate("/login"), 2000);
         } catch (error) {
-            setMessage(error.response?.data?.message || "Failed to reset password. Try again.");
+            const errMsg = error.response?.data?.message || "Failed to reset password. Try again.";
+            setMessage(errMsg);
+            toast.error(errMsg);
         }
         setLoading(false);
     };
 
     return (
         <div className="min-h-screen flex items-center justify-center">
+            <ToastContainer />
             <div className="bg-gray-800 p-8 rounded-2xl shadow-2xl w-full max-w-md text-center">
                 <h2 className="text-3xl font-bold mb-6 text-white">{isReset ? "Reset Password" : "Forgot Password"}</h2>
 
-                {message && <p className="mb-4 text-green-400">{message}</p>}
+                {message && <p className={`mb-4 ${message.includes("wrong") ? "text-red-400" : "text-green-400" }`}>{message}</p>}
 
                 {!isReset ? (
                     <form onSubmit={handleForgotPassword} className="space-y-4">
                         <input
-                            type="email"
-                            placeholder="Enter your email"
+                            type="text"
+                            placeholder="Enter your username"
                             className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
                             required
                         />
                         <button

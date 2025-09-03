@@ -49,6 +49,7 @@ import TrainerTopics from "./Components/trainer/CourseTopics";
 import ProtectedRoute from "./pages/ProtectedRoute";
 import Forbidden from "./pages/Forbidden";
 import SchoolCourseContent from "./Components/school/Content";
+import Profile from "./Components/Profile";
 export default function App() {
     const dispatch = useDispatch();
 
@@ -74,9 +75,9 @@ export default function App() {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/forbidden" element={<Forbidden/>}/>
                 <Route path="/resetpassword" element={
-                  <ProtectedRoute requiredRole={['*']}>
+                //   <ProtectedRoute requiredRole={['*']}>
                     <PasswordReset />
-                  </ProtectedRoute>
+                //   </ProtectedRoute>
                 } />
 
                 {/* Admin routes */}
@@ -270,6 +271,11 @@ export default function App() {
                 <Route path="/editor" element={
                     <ProtectedRoute requiredRole={["superadmin","admin","student"]}>
                         <TextEditor />
+                    </ProtectedRoute>
+                } />
+                <Route path="/profile" element={
+                    <ProtectedRoute requiredRole={["*"]}>
+                        <Profile />
                     </ProtectedRoute>
                 } />
             </Routes>
