@@ -1,0 +1,64 @@
+[{
+  "_id": {
+    "$oid": "67d2667400f279845901364d"
+  },
+  "schoolId": {
+    "$oid": "67d1c81127a379490b0473fa"
+  },
+  "email": "yssmc24@gmail.com",
+  "courses": [
+    {
+      "courseId": {
+        "$oid": "67cddbe94d23c78629842261"
+      },
+      "levelName": "Prarambh",
+      "pricing": {
+        "student": 40,
+        "school": 100,
+        "studentB2C": 300
+      },
+      "studentCount": 50,
+      "amountPaid": 2500,
+      "_id": {
+        "$oid": "67d2667400f279845901364e"
+      }
+    }
+  ],
+  "paymentType": "School",
+  "totalAmount": 5000,
+  "totalAmountPaid": 2500,
+  "paymentMethod": "emi",
+  "emiDetails": {
+    "numberOfInstallments": 2,
+    "installmentAmount": 2500,
+    "installments": [
+      {
+        "installmentNumber": 1,
+        "dueDate": {
+          "$date": "2025-04-12T05:00:36.605Z"
+        },
+        "amountDue": 2500,
+        "amountPaid": 2500,
+        "status": "pending"
+      },
+      {
+        "installmentNumber": 2,
+        "dueDate": {
+          "$date": "2025-05-12T05:00:36.605Z"
+        },
+        "amountDue": 2500,
+        "amountPaid": 0,
+        "utrNumber": "",
+        "status": "pending"
+      }
+    ]
+  },
+  "status": "partially_paid",
+  "createdAt": {
+    "$date": "2025-03-13T05:00:36.618Z"
+  },
+  "updatedAt": {
+    "$date": "2025-03-13T05:00:36.618Z"
+  },
+  "__v": 0
+}]

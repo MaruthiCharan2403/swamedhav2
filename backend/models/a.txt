@@ -1,0 +1,42 @@
+router.post('/approve-installment/:paymentId/:installmentNumber', auth, async (req, res) => {
+    if (req.user.role !== 'admin') {
+        return res.status(403).send('Access denied.');
+    }
+    try {
+        const { paymentId, installmentNumber } = req.params;
+
+        const payment = await Payment.findById(paymentId);
+
+        if (!payment) {
+            return res.status(404).json({ message: 'Payment not found' });
+        }
+
+        const installment = payment.emiDetails.installments.find(
+            inst => inst.installmentNumber === parseInt(installmentNumber)
+        );
+
+        if (!installment) {
+            return res.status(404).json({ message: 'Installment not found' });
+        }
+
+        // Approve the installment
+        installment.status = 'paid';
+
+        // Update overall payment status if all installments are paid
+        const allInstallmentsPaid = payment.emiDetails.installments.every(
+            inst => inst.status === 'paid'
+        );
+
+        if (allInstallmentsPaid) {
+            payment.status = 'approved';
+        } else if (payment.emiDetails.installments.some(inst => inst.status === 'paid')) {
+            payment.status = 'partially_paid';
+        }
+
+        await payment.save();
+
+        res.status(200).json({ message: 'Installment approved successfully', payment });
+    } catch (error) {
+        res.status(500).json({ message: 'Error approving installment', error: error.message });
+    }
+});
