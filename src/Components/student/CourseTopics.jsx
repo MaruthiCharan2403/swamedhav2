@@ -179,7 +179,7 @@ const Studentcoursetopics = () => {
                             </button>
                           )}
                           
-                          {hasContentType(topic, 'contentVideo') && (
+                          {/* {hasContentType(topic, 'contentVideo') && (
                             <button
                               onClick={() => {
                                 setSelectedTopicIndex(index);
@@ -217,7 +217,7 @@ const Studentcoursetopics = () => {
                               Keynote PDF
                             </button>
                           )}
-                          
+                           */}
                           {/* Always show these options */}
                           <button
                             onClick={() => {

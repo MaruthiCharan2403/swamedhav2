@@ -3,7 +3,6 @@ const router = express.Router();
 const School = require('../models/Schoolschema'); 
 const Student = require('../models/Studentschema'); 
 const Teacher = require('../models/Teacherschema'); 
-const Payment = require('../models/Paymentschema'); 
 const Course = require('../models/Course'); 
 const auth = require('../middleware/auth');
 
@@ -13,9 +12,7 @@ router.get('/school/purchases',auth, async (req, res) => {
         const schoolId = req.user.schoolId;
         const school = await School.findById(schoolId)
             .populate('coursesBoughtforstudents.courseId')
-            .populate('coursesBoughtforschool.courseId')
-            .populate('coursesBoughtforstudents.paymentId')
-            .populate('coursesBoughtforschool.paymentId');
+            .populate('coursesBoughtforschool.courseId');
 
         if (!school) {
             return res.status(404).json({ message: 'School not found' });
@@ -67,14 +64,12 @@ router.get('/stats', auth, async (req, res) => {
         const totalStudents = await Student.countDocuments();
         const totalTeachers = await Teacher.countDocuments();
         const totalCourses = await Course.countDocuments();
-        const totalPayments = await Payment.countDocuments();
 
         const stats = {
             totalSchools,
             totalStudents,
             totalTeachers,
-            totalCourses,
-            totalPayments
+            totalCourses
         };
 
         res.status(200).json(stats);
@@ -145,60 +140,7 @@ router.get('/schools/registration-trend',auth, async (req, res) => {
     }
 });
 
-// Get courses in demand
-router.get('/courses/demand',auth, async (req, res) => {
-    try {
-        const coursesInDemand = await Payment.aggregate([
-            {
-                $group: {
-                    _id: "$courseId",
-                    totalPurchases: { $sum: 1 }
-                }
-            },
-            {
-                $lookup: {
-                    from: "courses",
-                    localField: "_id",
-                    foreignField: "_id",
-                    as: "courseDetails"
-                }
-            },
-            {
-                $unwind: "$courseDetails"
-            },
-            {
-                $project: {
-                    courseName: "$courseDetails.name",
-                    totalPurchases: 1
-                }
-            },
-            {
-                $sort: { totalPurchases: -1 }
-            }
-        ]);
-
-        res.status(200).json(coursesInDemand);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-
-// Get payment status breakdown
-router.get('/payments/status',auth, async (req, res) => {
-    try {
-        const pendingPayments = await Payment.find({ status: 'pending' });
-        const approvedPayments = await Payment.find({ status: 'approved' });
-        const rejectedPayments = await Payment.find({ status: 'rejected' });
-
-        res.status(200).json({
-            pending: pendingPayments,
-            approved: approvedPayments,
-            rejected: rejectedPayments
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
+// Get student and teacher growth trends
 
 // Get student and teacher growth trends
 router.get('/growth-trend',auth, async (req, res) => {

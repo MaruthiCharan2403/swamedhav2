@@ -4,7 +4,6 @@ const User = require("../models/Userschema");
 const auth = require("../middleware/auth");
 const School = require("../models/Schoolschema");
 const Course = require("../models/Course");
-const Payment = require("../models/Paymentschema");
 const bcrypt = require("bcryptjs");
 const mailUtility = require("../middleware/mailUtility");
 const Teacher = require("../models/Teacherschema");

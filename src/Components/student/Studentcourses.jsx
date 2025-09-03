@@ -87,7 +87,7 @@ const Studentcourses = () => {
                       {course.terms.map((term) => (
                         <div 
                           key={term.termId}
-                          onClick={() => navigate(`/student/level?id=${course.courseId}&term=${term.termId}`)}
+                          onClick={() => navigate(`/student/level/term?levelid=${course.courseId}&termid=${term.termId}`)}
                           className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-colors duration-300 cursor-pointer"
                         >
                           <span className="text-gray-800 font-medium">{term.termName}</span>
