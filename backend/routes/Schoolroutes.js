@@ -571,6 +571,150 @@ router.post("/:studentId/remove-course", auth, async (req, res) => {
   }
 });
 
+router.post("/assign-course-section", auth, async (req, res) => {
+  if (req.user.role !== "school") {
+    return res.status(403).send("Access denied.");
+  }
+
+  const { classNumber, section, courseId, levelName, assignedTerms } = req.body;
+
+  // Input validation
+  if (
+    !classNumber ||
+    !section ||
+    !courseId ||
+    !levelName ||
+    !assignedTerms ||
+    !Array.isArray(assignedTerms)
+  ) {
+    return res.status(400).json({ message: "Invalid input data" });
+  }
+
+  try {
+    // Find all students in the specified class and section
+    const students = await Student.find({
+      schoolId: req.user.schoolId,
+      class: classNumber,
+      section,
+    });
+
+    if (!students || students.length === 0) {
+      return res.status(404).json({ message: "No students found for this class and section" });
+    }
+
+    const school = await School.findById(req.user.schoolId);
+    if (!school) {
+      return res.status(404).json({ message: "School not found" });
+    }
+
+    // Check if the course is enabled for the school
+    const enabledCourse = school.enabledCourses.find(
+      (course) => course.courseId.toString() === courseId
+    );
+    if (!enabledCourse) {
+      return res.status(400).json({ message: "Course is not enabled for this school" });
+    }
+
+    let countAdded = 0;
+    let alreadyAssigned = [];
+    for (const student of students) {
+      const alreadyAssignedCourse = student.assignedCourses.find(
+        (c) => c.courseId.toString() === courseId
+      );
+      if (alreadyAssignedCourse) {
+        alreadyAssigned.push(student._id);
+        continue; // Skip students who already have this course
+      }
+      student.assignedCourses.push({
+        courseId,
+        levelName,
+        assignedTerms: assignedTerms.map((term) => ({
+          termId: term.termId,
+          termName: term.termName,
+        })),
+      });
+      countAdded++;
+      await student.save();
+    }
+    enabledCourse.currentcount += countAdded;
+    await school.save();
+
+    res.status(200).json({
+      message: `Course assigned to ${countAdded} students. ${alreadyAssigned.length > 0 ? alreadyAssigned.length + " students already had the course." : ""}`,
+      alreadyAssigned,
+      assignedCount: countAdded,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.post("/remove-course-section", auth, async (req, res) => {
+  if (req.user.role !== "school") {
+    return res.status(403).send("Access denied.");
+  }
+
+  const { classNumber, section, courseId } = req.body;
+
+  // Input validation
+  if (!classNumber || !section || !courseId) {
+    return res.status(400).json({ message: "Invalid input data" });
+  }
+
+  try {
+    // Find all students in the specified class and section
+    const students = await Student.find({
+      schoolId: req.user.schoolId,
+      class: classNumber,
+      section,
+    });
+
+    if (!students || students.length === 0) {
+      return res.status(404).json({ message: "No students found for this class and section" });
+    }
+
+    const school = await School.findById(req.user.schoolId);
+    if (!school) {
+      return res.status(404).json({ message: "School not found" });
+    }
+
+    // Check if the course is enabled for the school
+    const enabledCourse = school.enabledCourses.find(
+      (course) => course.courseId.toString() === courseId
+    );
+    if (!enabledCourse) {
+      return res.status(400).json({ message: "Course is not enabled for this school" });
+    }
+
+    let countRemoved = 0;
+    let notAssigned = [];
+    for (const student of students) {
+      const initialLength = student.assignedCourses.length;
+      // Remove the course from assignedCourses
+      student.assignedCourses = student.assignedCourses.filter(
+        (c) => c.courseId.toString() !== courseId
+      );
+      if (student.assignedCourses.length < initialLength) {
+        countRemoved++;
+        await student.save();
+      } else {
+        notAssigned.push(student._id);
+      }
+    }
+    enabledCourse.currentcount -= countRemoved;
+    if (enabledCourse.currentcount < 0) enabledCourse.currentcount = 0;
+    await school.save();
+
+    res.status(200).json({
+      message: `Course removed from ${countRemoved} students. ${notAssigned.length > 0 ? notAssigned.length + " students did not have the course." : ""}`,
+      notAssigned,
+      removedCount: countRemoved,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 //get all student in a school
 router.get("/students", auth, async (req, res) => {
   if (req.user.role !== "school")
