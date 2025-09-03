@@ -23,7 +23,7 @@ export default function AssignCourseToStudentModal() {
         });
         setStudents(studentsResponse.data);
 
-        const enabledCoursesResponse = await axios.get('/api/superadmin/enabled', {
+        const enabledCoursesResponse = await axios.get('/api/school/enabled', {
           headers: {
             'Authorization': sessionStorage.getItem('token')
           }

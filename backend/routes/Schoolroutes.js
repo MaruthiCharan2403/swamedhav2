@@ -414,15 +414,13 @@ router.get("/enabled", auth, async (req, res) => {
     const courses = await Course.find();
 
     const enabledCourses = school.enabledCourses.map((course) => {
-      const courseDetails = courses.find((c) => c._id.equals(course.courseId));
       return {
         courseId: course.courseId,
         levelName: course.levelName,
         studentcount: course.studentcount,
         currentcount: course.currentcount,
         enabledTerms: course.enabledTerms || [],
-        // You can include courseDetails if you want more info about the course structure
-        // courseDetails,
+        
       };
     });
 
