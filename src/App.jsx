@@ -226,11 +226,7 @@ export default function App() {
                         <Studentcourses />
                     </ProtectedRoute>
                 } />
-                <Route path="/student/level" element={
-                    <ProtectedRoute requiredRole={["student", "studentb2c"]}>
-                        <Studentterms />
-                    </ProtectedRoute>
-                } />
+                
                 <Route path="/student/level/term" element={
                     <ProtectedRoute requiredRole={["student", "studentb2c"]}>
                         <Studentcoursetopics />
