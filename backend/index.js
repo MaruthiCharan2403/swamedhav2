@@ -12,8 +12,8 @@ const trainerroutes = require('./routes/trainerroutes');
 // const dataroutes = require('./routes/dataroutes');
 // const adminroutes = require('./routes/adminroutes');
 // const studentb2croutes = require('./routes/Studentb2c');
-const axios = require('axios');
-const cron = require('node-cron');
+// const axios = require('axios');
+// const cron = require('node-cron');
 const cors = require('cors');
 const app = express();
 app.use(express.json());
@@ -42,16 +42,6 @@ app.use('/api/admin', adminroutes);
 app.use('/api/trainer', trainerroutes);
 // app.use('/api/studentb2c', studentb2croutes);
 
-
-cron.schedule('0 0 * * *', async () => {
-    try {
-        console.log('Running payment reminder job at 12 AM...');
-        const response = await axios.get('https://swamedhabackend.vercel.app/api/school/send-payment-reminders');
-        console.log('Payment reminders sent:', response.data.message);
-    } catch (error) {
-        console.error('Error running payment reminder job:', error.message);
-    }
-});
 
 app.listen(5000, () => {
     console.log('Server is running on port 5000');
