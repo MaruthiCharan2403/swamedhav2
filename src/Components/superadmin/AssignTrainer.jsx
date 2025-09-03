@@ -40,17 +40,42 @@ const AssignTrainer = () => {
     const updateTrainerSchools = async () => {
         if (!selectedTrainer) return;
 
+        console.log('Updating trainer schools:', selectedTrainer.name);
+        console.log('Selected schools:', selectedSchools);
+        
+        // Get the removed schools for better feedback
+        const currentSchoolIds = selectedTrainer.trainerId.schoolIds.map(school => 
+            typeof school === 'object' ? school._id : school
+        );
+        const removedSchools = currentSchoolIds.filter(id => !selectedSchools.includes(id));
+        
+        // If schools are being removed, ask for confirmation
+        if (removedSchools.length > 0) {
+            const confirmed = window.confirm(
+                `You are about to remove ${removedSchools.length} school(s) from this trainer's assignments. Do you want to continue?`
+            );
+            if (!confirmed) {
+                return;
+            }
+        }
+        
         setLoading(true);
         try {
             await axios.put(
                 `/api/superadmin/assigntrainer`,
                 {
-                    trainerId: selectedTrainer.trainerId,
+                    trainerId: selectedTrainer.trainerId._id,
                     schoolIds: selectedSchools
                 },
                 { headers: { Authorization: `${sessionStorage.getItem("token")}` } }
             );
-            toast.success("Schools assigned successfully");
+            
+            if (removedSchools.length > 0) {
+                toast.success(`Schools updated successfully. ${removedSchools.length} school(s) were unassigned.`);
+            } else {
+                toast.success("Schools assigned successfully");
+            }
+            
             fetchData(); // Refresh data
             setSelectedTrainer(null); // Close the assignment panel
         } catch (error) {
@@ -71,8 +96,17 @@ const AssignTrainer = () => {
 
     // Initialize selected schools when trainer is selected
     useEffect(() => {
-        if (selectedTrainer) {
-            setSelectedSchools(selectedTrainer.schoolIds?.map(s => s._id) || []);
+        if (selectedTrainer && selectedTrainer.trainerId && selectedTrainer.trainerId.schoolIds) {
+            console.log('Trainer selected:', selectedTrainer.name);
+            console.log('School IDs:', selectedTrainer.trainerId.schoolIds);
+            
+            // Extract school IDs from the trainer's assigned schools
+            const assignedSchoolIds = selectedTrainer.trainerId.schoolIds.map(school => 
+                typeof school === 'object' ? school._id : school
+            );
+            console.log('Assigned school IDs:', assignedSchoolIds);
+            
+            setSelectedSchools(assignedSchoolIds);
             setSchoolPage(1); // Reset to first page when selecting new trainer
         }
     }, [selectedTrainer]);
@@ -238,21 +272,42 @@ const AssignTrainer = () => {
 
                                     <div className="flex-grow overflow-y-auto mb-4 border rounded">
                                         {currentSchools.length > 0 ? (
-                                            currentSchools.map(school => (
-                                                <div key={school._id} className="flex items-center p-2 hover:bg-gray-50 border-b">
-                                                    <input
-                                                        type="checkbox"
-                                                        id={`school-${school._id}`}
-                                                        checked={selectedSchools.includes(school._id)}
-                                                        onChange={() => handleSchoolSelect(school._id)}
-                                                        className="mr-3"
-                                                    />
-                                                    <label htmlFor={`school-${school._id}`} className="flex-1">
-                                                        <div className="font-medium">{school.name}</div>
-                                                        <div className="text-sm text-gray-600">{school.address}</div>
-                                                    </label>
-                                                </div>
-                                            ))
+                                            currentSchools.map(school => {
+                                                // Check if this school is already assigned to the trainer
+                                                const isAssigned = selectedSchools.includes(school._id);
+                                                
+                                                // Check if this school's selection status has been changed
+                                                const wasAssigned = selectedTrainer.trainerId.schoolIds.some(s => 
+                                                    (typeof s === 'object' ? s._id : s) === school._id
+                                                );
+                                                const isChanged = wasAssigned !== isAssigned;
+                                                
+                                                return (
+                                                    <div key={school._id} className={`flex items-center p-2 hover:bg-gray-50 border-b ${
+                                                        isAssigned ? 'bg-blue-50' : ''
+                                                    } ${isChanged ? 'border-l-4 border-orange-500' : ''}`}>
+                                                        <input
+                                                            type="checkbox"
+                                                            id={`school-${school._id}`}
+                                                            checked={isAssigned}
+                                                            onChange={() => handleSchoolSelect(school._id)}
+                                                            className="mr-3"
+                                                        />
+                                                        <label htmlFor={`school-${school._id}`} className="flex-1">
+                                                            <div className="font-medium">{school.name}</div>
+                                                            <div className="text-sm text-gray-600">{school.address}</div>
+                                                            {isAssigned && !isChanged && 
+                                                                <div className="text-xs text-blue-600">Currently assigned</div>
+                                                            }
+                                                            {isChanged && (
+                                                                <div className={`text-xs ${isAssigned ? 'text-green-600' : 'text-red-600'}`}>
+                                                                    {isAssigned ? 'Will be assigned' : 'Will be unassigned'} (not saved)
+                                                                </div>
+                                                            )}
+                                                        </label>
+                                                    </div>
+                                                );
+                                            })
                                         ) : (
                                             <div className="text-center text-gray-500 py-4">
                                                 No schools found
