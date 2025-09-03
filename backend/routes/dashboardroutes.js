@@ -3,7 +3,6 @@ const router = express.Router();
 const School = require('../models/Schoolschema');
 const Student = require('../models/Studentschema');
 const Teacher = require('../models/Teacherschema');
-const Payment = require('../models/Paymentschema');
 const auth = require('../middleware/auth');
 
 // Get all schools
@@ -35,16 +34,6 @@ router.get('/teachers', async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
-
-// Get all payments
-router.get('/payments', async (req, res) => {
-    try {
-        const payments = await Payment.find().populate('schoolId').populate('studentId');
-        res.json(payments);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
 router.get('/schooldata',auth, async (req, res) => {
     try {
       const schoolId  = req.user.schoolId;
@@ -64,9 +53,6 @@ router.get('/schooldata',auth, async (req, res) => {
   
       // Get teachers for this school
       const teachers = await Teacher.find({ schoolId }).lean();
-  
-      // Get payments for this school
-      const payments = await Payment.find({ schoolId }).lean();
   
       // Calculate student statistics
       const studentStats = {
@@ -139,47 +125,6 @@ router.get('/schooldata',auth, async (req, res) => {
         });
       }
   
-      // Calculate payment statistics
-      const paymentStats = {
-        total: payments.length,
-        totalAmount: 0,
-        totalPaid: 0,
-        pending: 0,
-        approved: 0,
-        rejected: 0,
-        partiallyPaid: 0,
-        byMonth: {}
-      };
-  
-      payments.forEach(payment => {
-        paymentStats.totalAmount += payment.totalAmount || 0;
-        paymentStats.totalPaid += payment.totalAmountPaid || 0;
-        
-        // Count by status
-        if (payment.status === 'pending') paymentStats.pending++;
-        else if (payment.status === 'approved') paymentStats.approved++;
-        else if (payment.status === 'rejected') paymentStats.rejected++;
-        else if (payment.status === 'partially_paid') paymentStats.partiallyPaid++;
-        
-        // Group by month
-        if (payment.createdAt) {
-          const date = new Date(payment.createdAt);
-          const monthYear = `${date.getMonth() + 1}-${date.getFullYear()}`;
-          
-          if (!paymentStats.byMonth[monthYear]) {
-            paymentStats.byMonth[monthYear] = {
-              count: 0,
-              amount: 0,
-              paid: 0
-            };
-          }
-          
-          paymentStats.byMonth[monthYear].count++;
-          paymentStats.byMonth[monthYear].amount += payment.totalAmount || 0;
-          paymentStats.byMonth[monthYear].paid += payment.totalAmountPaid || 0;
-        }
-      });
-  
       // Calculate teacher statistics
       const teacherStats = {
         total: teachers.length,
@@ -187,22 +132,13 @@ router.get('/schooldata',auth, async (req, res) => {
         teachersWithStudents: teachers.filter(t => t.assignedStudents && t.assignedStudents.length > 0).length
       };
   
-      // Prepare recent activities
-      const recentPayments = payments
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        .slice(0, 5);
-  
       // Prepare dashboard data
       const dashboardData = {
         school,
         stats: {
           students: studentStats,
           teachers: teacherStats,
-          courses: courseStats,
-          payments: paymentStats
-        },
-        recent: {
-          payments: recentPayments
+          courses: courseStats
         }
       };
   
@@ -276,54 +212,6 @@ router.get('/schooldata',auth, async (req, res) => {
     }
   });
   
-  // Get payment trends for a school
-  router.get('/school/payment-trends',auth, async (req, res) => {
-    try {
-      const schoolId = req.user.schoolId;
-  
-      const payments = await Payment.find({ schoolId }).lean();
-      
-      // Group payments by month for the last 12 months
-      const trends = {};
-      const now = new Date();
-      
-      // Initialize last 12 months
-      for (let i = 0; i < 12; i++) {
-        const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        const monthYear = `${date.getMonth() + 1}-${date.getFullYear()}`;
-        trends[monthYear] = {
-          month: date.toLocaleString('default', { month: 'short' }),
-          year: date.getFullYear(),
-          total: 0,
-          collected: 0,
-          count: 0
-        };
-      }
-      
-      // Fill in payment data
-      payments.forEach(payment => {
-        if (payment.createdAt) {
-          const date = new Date(payment.createdAt);
-          const monthYear = `${date.getMonth() + 1}-${date.getFullYear()}`;
-          
-          if (trends[monthYear]) {
-            trends[monthYear].total += payment.totalAmount || 0;
-            trends[monthYear].collected += payment.totalAmountPaid || 0;
-            trends[monthYear].count++;
-          }
-        }
-      });
-      
-      // Convert to array and sort by date
-      const trendsArray = Object.values(trends).sort((a, b) => {
-        return new Date(b.year, parseInt(b.month) - 1) - new Date(a.year, parseInt(a.month) - 1);
-      });
-      
-      res.json(trendsArray);
-    } catch (error) {
-      console.error('Error fetching payment trends:', error);
-      res.status(500).json({ message: error.message });
-    }
-  });
+
 
 module.exports = router;
