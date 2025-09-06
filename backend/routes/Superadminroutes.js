@@ -300,21 +300,36 @@ router.put('/assigntrainer', auth, async (req, res) => {
             return res.status(404).json({ message: "One or more schools not found" });
         }
 
+        // Instead of $addToSet, we'll completely replace the schoolIds array
+        // This allows for both adding and removing schools
         const updatedTrainer = await Trainer.findByIdAndUpdate(
             trainerId,
-            { $addToSet: { schoolIds: { $each: schoolIds } } },
+            { schoolIds: schoolIds },
             { new: true }
         );
+        
         if (!updatedTrainer) {
             return res.status(500).json({ message: "Error updating trainer" });
         }
+        
+        // First, remove this trainer from all schools
+        await School.updateMany(
+            { trainers: trainerId },
+            { $pull: { trainers: trainerId } }
+        );
+        
+        // Then add the trainer to the selected schools
         const bulkOps = schoolIds.map(schoolId => ({
             updateOne: {
                 filter: { _id: schoolId },
                 update: { $addToSet: { trainers: trainerId } }
             }
         }));
-        await School.bulkWrite(bulkOps);
+        
+        if (bulkOps.length > 0) {
+            await School.bulkWrite(bulkOps);
+        }
+        
         return res.status(200).json({ message: "Trainer assigned successfully", trainer: updatedTrainer });
 
     } catch (error) {

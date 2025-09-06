@@ -89,15 +89,15 @@ const UserProfile = () => {
                   )}
                   {user.role === "student" && user.studentDetails && (
                     <>
-                      <p><span className="font-medium text-gray-700">Roll Number:</span> {user.studentDetails.rollNumber}</p>
                       <p><span className="font-medium text-gray-700">Class:</span> {user.studentDetails.class}</p>
-                      <p><span className="font-medium text-gray-700">Father's Name:</span> {user.studentDetails.fathername}</p>
+                      <p><span className="font-medium text-gray-700">Section:</span> {user.studentDetails.section}</p>
+                      <p><span className="font-medium text-gray-700">Phone:</span> {user.studentDetails.phone}</p>
                     </>
                   )}
                   {user.role === "teacher" && user.teacherDetails && (
                     <>
-                      <p><span className="font-medium text-gray-700">Mobile:</span> {user.teacherDetails.mobile}</p>
-                      <p><span className="font-medium text-gray-700">DOB:</span> {new Date(user.teacherDetails.dob).toLocaleDateString()}</p>
+                      <p><span className="font-medium text-gray-700">Phone:</span> {user.teacherDetails.phone}</p>
+                      <p><span className="font-medium text-gray-700">Subject:</span> {user.teacherDetails.subject}</p>
                     </>
                   )}
                 </div>
