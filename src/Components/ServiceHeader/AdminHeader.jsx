@@ -38,6 +38,16 @@ export default function AdminHeader({ setIsMenuOpen }) {
                         Code Editor
                     </Link>
                 </li>
+                <li className="flex">
+                    <Link to="/admin/content" className={`flex items-center px-4 border-b-2 border-transparent hover:border-amber-600 focus:border-amber-600 ${checkActive('/admin/contentupload')}`} >
+                        View Content
+                    </Link>
+                </li>
+                <li className="flex">
+                    <Link to="/admin/upload" className={`flex items-center px-4 border-b-2 border-transparent hover:border-amber-600 focus:border-amber-600 ${checkActive('/admin/contentupload')}`} >
+                        Upload Content
+                    </Link>
+                </li>
             </ul>
             <ul className="lg:hidden text-white rounded-md bg-gray-800 divide-y divide-gray-600">
                 <li>
@@ -83,6 +93,16 @@ export default function AdminHeader({ setIsMenuOpen }) {
                         onClick={() => setIsMenuOpen(false)}
                     >
                         Code Editor
+                    </Link>
+                </li>
+                <li >
+                    <Link to="/admin/content" className={`flex items-center px-4 border-b-2 border-transparent hover:border-amber-600 focus:border-amber-600 ${checkActive('/admin/contentupload')}`} >
+                        View Content
+                    </Link>
+                </li>
+                <li>
+                    <Link to="/admin/upload" className={`flex items-center px-4 border-b-2 border-transparent hover:border-amber-600 focus:border-amber-600 ${checkActive('/admin/contentupload')}`} >
+                        Upload Content
                     </Link>
                 </li>
             </ul>

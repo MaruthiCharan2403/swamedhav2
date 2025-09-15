@@ -9,6 +9,7 @@ const Teacheroutes = require('./routes/Teacherroutes');
 const dashboardroutes =  require('./routes/dashboardroutes');
 const adminroutes = require('./routes/adminroutes');
 const trainerroutes = require('./routes/trainerroutes');
+const Contentroutes = require('./routes/Contentroutes');
 // const dataroutes = require('./routes/dataroutes');
 // const adminroutes = require('./routes/adminroutes');
 // const studentb2croutes = require('./routes/Studentb2c');
@@ -40,6 +41,7 @@ app.use('/api/teacher', Teacheroutes);
 app.use('/api/dashboard', dashboardroutes);
 app.use('/api/admin', adminroutes);
 app.use('/api/trainer', trainerroutes);
+app.use('/api/content', Contentroutes);
 // app.use('/api/studentb2c', studentb2croutes);
 
 

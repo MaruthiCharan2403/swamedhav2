@@ -1,5 +1,5 @@
 // import React from "react";
-import { BrowserRouter as Router, Routes,Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Homepage from "./pages/Home";
 import Navbar from "./pages/Navbar";
 import Footer from "./pages/Footer";
@@ -50,18 +50,23 @@ import ProtectedRoute from "./pages/ProtectedRoute";
 import Forbidden from "./pages/Forbidden";
 import SchoolCourseContent from "./Components/school/Content";
 import Profile from "./Components/Profile";
+import ViewPage from "./Components/admin/Content/CourseList";
+import FormPage from "./Components/admin/Content/CreateCourse";
+import ViewResource from "./Components/admin/Content/ViewResource";
+
+
 export default function App() {
     const dispatch = useDispatch();
 
-    useEffect(()=>{
-        if(sessionStorage.getItem('token')!==null){
+    useEffect(() => {
+        if (sessionStorage.getItem('token') !== null) {
             const user = sessionStorage.getItem('userEmail');
             const username = sessionStorage.getItem('username');
             const role = sessionStorage.getItem('role');
-            dispatch(login({userEmail:user,role:role,username:username}));
+            dispatch(login({ userEmail: user, role: role, username: username }));
             console.log("Initialized with isAuthenticated = true");
         }
-    },[]);
+    }, []);
 
     return (
         <Router>
@@ -73,11 +78,11 @@ export default function App() {
                 <Route path="/courses" element={<Courses />} />
                 <Route path="/about" element={<WhoAreWe />} />
                 <Route path="/contact" element={<Contact />} />
-                <Route path="/forbidden" element={<Forbidden/>}/>
+                <Route path="/forbidden" element={<Forbidden />} />
                 <Route path="/resetpassword" element={
-                //   <ProtectedRoute requiredRole={['*']}>
+                    //   <ProtectedRoute requiredRole={['*']}>
                     <PasswordReset />
-                //   </ProtectedRoute>
+                    //   </ProtectedRoute>
                 } />
 
                 {/* Admin routes */}
@@ -91,7 +96,7 @@ export default function App() {
                         <AddLevelPage />
                     </ProtectedRoute>
                 } />
-                
+
                 <Route path="/admin/level/term" element={
                     <ProtectedRoute requiredRole={["admin"]}>
                         <CourseTopics />
@@ -113,6 +118,27 @@ export default function App() {
                     </ProtectedRoute>
                 } />
 
+                <Route
+                    path="/content"
+                    element={
+                        <ProtectedRoute requiredRole={["superadmin", "admin"]}>
+                            <ViewPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/create"
+                    element={
+                        <ProtectedRoute requiredRole={["superadmin", "admin"]}>
+                            <FormPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/viewresource/:resourceId"
+                    element={<ViewResource />}
+                />
+
                 {/* Superadmin routes */}
                 <Route path="/superadmindashboard" element={
                     <ProtectedRoute requiredRole={["superadmin"]}>
@@ -124,7 +150,7 @@ export default function App() {
                         <EnableCoursesLevels />
                     </ProtectedRoute>
                 } />
-                
+
                 <Route path="/superadmin/addadmin" element={
                     <ProtectedRoute requiredRole={["superadmin"]}>
                         <AddAdmin />
@@ -167,7 +193,7 @@ export default function App() {
                         <SchoolDashboard />
                     </ProtectedRoute>
                 } />
-                
+
                 <Route path="/school/addstudent" element={
                     <ProtectedRoute requiredRole={["school"]}>
                         <AddStudent />
@@ -227,7 +253,7 @@ export default function App() {
                         <Studentcourses />
                     </ProtectedRoute>
                 } />
-                
+
                 <Route path="/student/level/term" element={
                     <ProtectedRoute requiredRole={["student", "studentb2c"]}>
                         <Studentcoursetopics />
@@ -265,7 +291,7 @@ export default function App() {
 
                 {/* Editor (example: allow admin, superadmin, trainer) */}
                 <Route path="/editor" element={
-                    <ProtectedRoute requiredRole={["superadmin","admin","student"]}>
+                    <ProtectedRoute requiredRole={["superadmin", "admin", "student"]}>
                         <TextEditor />
                     </ProtectedRoute>
                 } />
