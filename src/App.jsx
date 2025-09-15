@@ -68,9 +68,11 @@ export default function App() {
         }
     }, []);
 
+    const isViewResource = window.location.hash.startsWith('/viewresource/');
+
     return (
         <Router>
-            <Navbar />
+            {!isViewResource && <Navbar />}
             <Routes>
                 <Route path="/" element={<Homepage />} />
                 <Route path="/register" element={<Registration />} />
@@ -119,7 +121,7 @@ export default function App() {
                 } />
 
                 <Route
-                    path="/content"
+                    path="/admin/content"
                     element={
                         <ProtectedRoute requiredRole={["superadmin", "admin"]}>
                             <ViewPage />
@@ -127,7 +129,7 @@ export default function App() {
                     }
                 />
                 <Route
-                    path="/create"
+                    path="/admin/upload"
                     element={
                         <ProtectedRoute requiredRole={["superadmin", "admin"]}>
                             <FormPage />

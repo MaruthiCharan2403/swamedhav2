@@ -107,7 +107,7 @@ const FormPage = () => {
   }
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
+    <div className="container mx-auto p-4 max-w-4xl pt-24">
       
       <h1 className="text-2xl font-bold mb-6">Add Course Content</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
