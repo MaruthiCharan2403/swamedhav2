@@ -130,7 +130,7 @@ const ViewPage = () => {
   };
   const handleViewDetails = (e, id) => {
     e.preventDefault();
-    window.open(`/#/viewresource/${id}`, '_blank', 'noopener,noreferrer');
+    window.open(`/viewresource/${id}`, '_blank', 'noopener,noreferrer');
   };
 
   if (isLoading) {

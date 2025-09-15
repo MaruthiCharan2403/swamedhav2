@@ -68,7 +68,7 @@ export default function App() {
         }
     }, []);
 
-    const isViewResource = window.location.hash.startsWith('/viewresource/');
+    const isViewResource = window.location.pathname.startsWith('/viewresource/');
 
     return (
         <Router>
