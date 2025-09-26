@@ -6,6 +6,7 @@ const School = require("../models/Schoolschema");
 const Course = require("../models/Course");
 const bcrypt = require("bcryptjs");
 const mailUtility = require("../middleware/mailUtility");
+const generateUniqueUsername = require("../utils/generateUsername");
 const Teacher = require("../models/Teacherschema");
 
 // Add a student
@@ -18,7 +19,7 @@ router.post("/add", auth, async (req, res) => {
     if (existingStudent)
       return res.status(400).json({ message: "Student already registered" });
     const password = Math.random().toString(36).slice(-8);
-    const username = email.split("@")[0];
+    const username = await generateUniqueUsername(email);
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({
       username,
@@ -223,7 +224,7 @@ router.post("/add-bulk", auth, async (req, res) => {
 
         // Generate credentials
         const password = Math.random().toString(36).slice(-8);
-        const username = email.split("@")[0];
+        const username = await generateUniqueUsername(email);
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create user record

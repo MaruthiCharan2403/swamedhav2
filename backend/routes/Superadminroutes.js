@@ -8,6 +8,7 @@ const auth = require("../middleware/auth");
 const Student = require("../models/Studentschema");
 const mailUtility = require('../middleware/mailUtility');
 const Trainer = require("../models/TrainerSchema");
+const generateUniqueUsername = require("../utils/generateUsername");
 const UserFeedback = require("../models/UserFeedback");
 const generatePassword = () => {
     return Math.random().toString(36).slice(-8);
@@ -133,8 +134,9 @@ router.post('/addtrainer', auth, async (req, res) => {
         });
         const savedTrainer = await newTrainer.save();
         const hashedPassword = await bcrypt.hash(password, 10);
+        const uniqueUsername = await generateUniqueUsername(name);
         const newUser = new User({
-            username: name,
+            username: uniqueUsername,
             name,
             email,
             password: hashedPassword,

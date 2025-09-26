@@ -11,6 +11,7 @@ export default function UserProfileHeader() {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
+  const displayName = (user?.name || user?.username || sessionStorage.getItem("username") || "User");
 
   // Close popover when clicking outside
   useEffect(() => {
@@ -44,7 +45,7 @@ export default function UserProfileHeader() {
         className="flex items-center space-x-2 px-4 py-2 border-b-2 border-transparent hover:border-amber-600 focus:border-amber-600 cursor-pointer"
       >
         <FiUser className="text-black text-2xl" />
-        <span className="hidden lg:inline text-black">{user?.name || "User"}</span>
+        <span className="hidden lg:inline text-black">{displayName}</span>
       </button>
 
       {/* Popover Menu (Desktop & Mobile) */}

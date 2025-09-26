@@ -7,7 +7,9 @@ const auth = require("../middleware/auth");
 const bcrypt = require("bcryptjs");
 const User = require("../models/Userschema");
 const mailUtility = require("../middleware/mailUtility");
+const generateUniqueUsername = require("../utils/generateUsername");
 const moment = require("moment");
+const mongoose = require("mongoose");
 
 const generatePassword = () => {
   return Math.random().toString(36).slice(-8);
@@ -42,7 +44,7 @@ router.post("/register", async (req, res) => {
     });
     const password = generatePassword();
     const hashedPassword = await bcrypt.hash(password, 10);
-    const generatedUsername = email.split("@")[0];
+    const generatedUsername = await generateUniqueUsername(email);
     const schoolUser = new User({
       username: generatedUsername,
       name: name,
@@ -248,6 +250,71 @@ router.put("/:id/enabled-courses", auth, async (req, res) => {
       { enabledCourses },
       { new: true }
     );
+
+    // Enforce student count caps for courses that remain enabled
+    for (const newCourse of enabledCourses) {
+      const courseId = newCourse.courseId.toString();
+      const newCap = Number(newCourse.studentcount || 0);
+      // Count current assignments for this course in this school
+      const currentAssignedCount = await Student.countDocuments({
+        schoolId: id,
+        "assignedCourses.courseId": mongoose.Types.ObjectId(courseId),
+      });
+
+      if (currentAssignedCount > newCap) {
+        const excess = currentAssignedCount - newCap;
+        // Pick excess students to deassign (newest first to prefer keeping older assignments)
+        const excessStudents = await Student.find({
+          schoolId: id,
+          "assignedCourses.courseId": mongoose.Types.ObjectId(courseId),
+        })
+          .sort({ updatedAt: -1 })
+          .limit(excess)
+          .select("_id");
+
+        const excessIds = excessStudents.map((s) => s._id);
+
+        if (excessIds.length > 0) {
+          // Remove course from assignedCourses for selected students
+          await Student.updateMany(
+            { _id: { $in: excessIds } },
+            {
+              $pull: {
+                assignedCourses: { courseId: mongoose.Types.ObjectId(courseId) },
+                progress: { courseId: mongoose.Types.ObjectId(courseId) },
+              },
+            }
+          );
+        }
+
+        // Sync currentcount for this course on the school document
+        const remainingAssigned = await Student.countDocuments({
+          schoolId: id,
+          "assignedCourses.courseId": mongoose.Types.ObjectId(courseId),
+        });
+
+        const ecIndex = updatedSchool.enabledCourses.findIndex(
+          (c) => c.courseId.toString() === courseId
+        );
+        if (ecIndex !== -1) {
+          updatedSchool.enabledCourses[ecIndex].currentcount = remainingAssigned;
+        }
+      } else {
+        // If within cap, ensure currentcount reflects actual assignments
+        const actualAssigned = await Student.countDocuments({
+          schoolId: id,
+          "assignedCourses.courseId": mongoose.Types.ObjectId(courseId),
+        });
+        const ecIndex = updatedSchool.enabledCourses.findIndex(
+          (c) => c.courseId.toString() === courseId
+        );
+        if (ecIndex !== -1) {
+          updatedSchool.enabledCourses[ecIndex].currentcount = actualAssigned;
+        }
+      }
+    }
+
+    await updatedSchool.save();
 
     // Remove progress and assignments for removed courses and terms
     if (removedCourses.length > 0 || removedTerms.length > 0) {

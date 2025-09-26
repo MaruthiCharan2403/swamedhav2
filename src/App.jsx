@@ -232,7 +232,7 @@ export default function App() {
                     </ProtectedRoute>
                 } />
                 <Route path="/school/studentdetails" element={
-                    <ProtectedRoute requiredRole={["school"]}>
+                    <ProtectedRoute requiredRole={["school","superadmin"]}>
                         <StudentDetailsPage />
                     </ProtectedRoute>
                 } />
@@ -244,7 +244,7 @@ export default function App() {
                 } />
 
                 <Route path="/school/students" element={
-                    <ProtectedRoute requiredRole={["school"]}>
+                    <ProtectedRoute requiredRole={["school","superadmin"]}>
                         <SchoolStudents />
                     </ProtectedRoute>
                 } />

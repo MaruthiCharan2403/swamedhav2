@@ -40,7 +40,6 @@ export default function SuperAdminHeader({ setIsMenuOpen }) {
           <button
             className="flex items-center px-4 border-b-2 border-transparent hover:border-amber-600 focus:border-amber-600 focus:text-black focus:font-bold"
             onClick={() => setAdminDropdownOpen((open) => !open)}
-            onBlur={() => setTimeout(() => setAdminDropdownOpen(false), 150)}
             type="button"
           >
             Admin

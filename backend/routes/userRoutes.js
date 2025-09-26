@@ -4,6 +4,7 @@ const User = require("../models/Userschema");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const mailUtility = require("../middleware/mailUtility");
+const generateUniqueUsername = require("../utils/generateUsername");
 const School = require("../models/Schoolschema");
 const Student = require("../models/Studentschema");
 const Teacher = require("../models/Teacherschema");
@@ -14,7 +15,7 @@ router.post("/register", async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
     const role = "admin";
-    const generatedUsername = email.split("@")[0];
+    const generatedUsername = await generateUniqueUsername(email);
     const user = new User({
       name,
       username: generatedUsername,
@@ -117,11 +118,7 @@ router.post("/register", async (req, res) => {
                     <p><span class="label">Password:</span> <span class="value">${password}</span></p>
                 </div>
                 
-                <p>You can now log in to your account using these credentials.</p>
                 
-                <div style="text-align: center;">
-                    <a href="https://swamedha.vercel.app/login" class="button">Log In Now</a>
-                </div>
                 
                 <div class="footer">
                     <p>If you have any questions, feel free to contact our support team.</p>
@@ -149,7 +146,7 @@ router.post("/superadminregister", async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
     const role = "superadmin";
-    const generatedUsername = email.split("@")[0];
+    const generatedUsername = await generateUniqueUsername(email);
     const user = new User({
       name,
       username: generatedUsername,
@@ -309,7 +306,7 @@ router.post("/login", async (req, res) => {
         name: user.name,
         email: user.email,
       },
-      "8328211811",
+      process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
     res.status(200).json({
