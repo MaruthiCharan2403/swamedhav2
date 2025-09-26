@@ -6,7 +6,7 @@ import { Provider } from 'react-redux'
 import {store} from './redux/store.js'
 import axios from 'axios'
 
-axios.defaults.baseURL ='https://swamedhav2backend.vercel.app'
+axios.defaults.baseURL ='https://api.swamedha.org'
 // axios.defaults.baseURL = 'http://localhost:5000'
 
 createRoot(document.getElementById('root')).render(
