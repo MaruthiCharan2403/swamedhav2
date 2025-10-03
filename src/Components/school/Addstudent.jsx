@@ -13,6 +13,7 @@ export default function AddStudent() {
     section: ''
   });
   const [isUploading, setIsUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedData, setUploadedData] = useState([]);
   const [showUploadPreview, setShowUploadPreview] = useState(false);
 
@@ -27,13 +28,13 @@ export default function AddStudent() {
 
   const handleStudentSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
       const response = await axios.post('/api/student/add', studentFormData, {
         headers: {
           Authorization: `${sessionStorage.getItem('token')}` // Include the auth token
         }
       });
-      console.log(response);
       setStudentFormData({
         name: '',
         email: '',
@@ -44,8 +45,9 @@ export default function AddStudent() {
       toast.success(response.data.message);
     }
     catch (err) {
-      console.log(err);
       toast.error(err.response?.data?.message || "Failed to add student");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -285,16 +287,19 @@ export default function AddStudent() {
 
                 <div className="col-span-full sm:col-span-3">
                   <label htmlFor="Class" className="text-sm text-gray-700">Class<span className="text-red-600"> *</span></label>
-                  <input
+                  <select
                     id="Class"
                     name="Class"
-                    type="text"
                     required
                     value={studentFormData.Class}
                     onChange={handleStudentChange}
-                    placeholder="Enter Class"
                     className="w-full px-4 py-2 rounded-lg bg-white text-gray-800 border border-gray-300 focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
-                  />
+                  >
+                    <option value="" disabled>Select Class</option>
+                    {[...Array(10)].map((_, i) => (
+                      <option key={i+1} value={String(i+1)}>{i+1}</option>
+                    ))}
+                  </select>
                 </div>
                 
                 <div className="col-span-full sm:col-span-3">
@@ -315,8 +320,9 @@ export default function AddStudent() {
                 <button
                   type="submit"
                   className="px-7 py-3 m-2 rounded-sm justify-center items-center bg-amber-600 text-white hover:bg-amber-700 transition-transform transform hover:scale-102 cursor-pointer"
+                  disabled={isSubmitting}
                 >
-                  Submit
+                  {isSubmitting ? "Submitting..." : "Submit"}
                 </button>
               </div>
             </form>

@@ -12,9 +12,9 @@ export default function AddTeacher() {
     subject: "",
   });
   const [isUploading, setIsUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadedData, setUploadedData] = useState([]);
   const [showUploadPreview, setShowUploadPreview] = useState(false);
-
   // Handle form changes for teacher
   const handleTeacherChange = (e) => {
     const { name, value } = e.target;
@@ -26,13 +26,13 @@ export default function AddTeacher() {
 
   const handleTeacherSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     try {
       const response = await axios.post("/api/teacher/add", teacherFormData, {
         headers: {
-          Authorization: `${sessionStorage.getItem("token")}`, // Include the auth token
+          Authorization: `${sessionStorage.getItem("token")}`,
         },
       });
-      console.log(response);
       setTeacherFormData({
         name: "",
         email: "",
@@ -41,11 +41,11 @@ export default function AddTeacher() {
       });
       toast.success(response.data.message);
     } catch (err) {
-      console.log(err);
       toast.error(err.response?.data?.message || "Failed to add teacher");
+    } finally {
+      setIsSubmitting(false);
     }
   };
-
   // Handle Excel file upload
   const handleExcelUpload = (e) => {
     const file = e.target.files[0];
@@ -54,6 +54,7 @@ export default function AddTeacher() {
     setIsUploading(true);
     const reader = new FileReader();
 
+        setIsSubmitting(false);
     reader.onload = (event) => {
       try {
         const data = new Uint8Array(event.target.result);
@@ -318,8 +319,9 @@ export default function AddTeacher() {
                 <button
                   type="submit"
                   className="px-7 py-3 m-2 rounded-sm justify-center items-center bg-amber-600 text-white hover:bg-amber-700 transition-transform transform hover:scale-102 cursor-pointer"
+                  disabled={isSubmitting}
                 >
-                  Submit
+                  {isSubmitting ? "Submitting..." : "Submit"}
                 </button>
               </div>
             </form>

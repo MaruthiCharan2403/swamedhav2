@@ -27,10 +27,8 @@ import ViewTeachers from "./Components/school/Viewteachers";
 import Assignteachers from "./Components/school/Assignteachers";
 import AssignStudents from "./Components/school/Assignstudent";
 import Studentcourses from "./Components/student/Studentcourses";
-import Studentterms from "./Components/student/Terms";
 import Studentcoursetopics from "./Components/student/CourseTopics";
 import Teachercourses from "./Components/Teacher/Teachercourses";
-import Teacherterms from "./Components/Teacher/Terms";
 import TeachercourseTopics from "./Components/Teacher/CourseTopics";
 import StudentDetailsPage from "./Components/school/Studentdetails";
 import PasswordReset from "./pages/Resetpassword";
@@ -268,11 +266,7 @@ export default function App() {
                         <Teachercourses />
                     </ProtectedRoute>
                 } />
-                <Route path="/teacher/level" element={
-                    <ProtectedRoute requiredRole={["teacher"]}>
-                        <Teacherterms />
-                    </ProtectedRoute>
-                } />
+                
                 <Route path="/teacher/level/term" element={
                     <ProtectedRoute requiredRole={["teacher"]}>
                         <TeachercourseTopics />

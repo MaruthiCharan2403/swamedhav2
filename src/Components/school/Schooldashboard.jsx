@@ -30,6 +30,13 @@ const SchoolCourses = () => {
   if (loading) return <Loader />;
   if (error) return <div className="text-center mt-8 text-red-500">Error: {error}</div>;
 
+  // Sort courses by levelName (course title)
+  const sortedCourses = [...courses].sort((a, b) => {
+    if (!a.levelName) return 1;
+    if (!b.levelName) return -1;
+    return a.levelName.localeCompare(b.levelName);
+  });
+
   return (
     <div className="min-h-screen bg-gray-100 p-6 pt-32">
       {/* Page Title */}
@@ -39,7 +46,7 @@ const SchoolCourses = () => {
 
       {/* Courses Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {courses.map((course, index) => (
+        {sortedCourses.map((course, index) => (
           <div
             key={course.courseId}
             className="group relative bg-white rounded-2xl shadow-md hover:shadow-xl p-6 transition-all duration-300 border border-gray-100 hover:border-indigo-500"
@@ -64,7 +71,6 @@ const SchoolCourses = () => {
             {/* Enabled Terms */}
             {course.enabledTerms?.length > 0 && (
               <div>
-                
                 <div className="flex flex-wrap gap-2 justify-center">
                   {course.enabledTerms.map((term) => (
                     <span

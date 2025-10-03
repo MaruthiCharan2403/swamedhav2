@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function SchoolHeader({ setIsMenuOpen }) {
@@ -30,6 +31,7 @@ export default function SchoolHeader({ setIsMenuOpen }) {
                         className="flex items-center px-4 border-b-2 border-transparent hover:border-amber-600 focus:border-amber-600"
                     >
                         Students
+                        <ChevronDown className="w-4 h-4 ml-1 text-gray-500" />
                     </button>
                     {openDropdown === 'students' && (
                         <ul className="absolute top-full left-0 bg-white shadow-lg rounded-md mt-1">
@@ -62,6 +64,7 @@ export default function SchoolHeader({ setIsMenuOpen }) {
                         className="flex items-center px-4 border-b-2 border-transparent hover:border-amber-600 focus:border-amber-600"
                     >
                         Teachers
+                        <ChevronDown className="w-4 h-4 ml-1 text-gray-500" />
                     </button>
                     {openDropdown === 'teachers' && (
                         <ul className="absolute top-full left-0 bg-white shadow-lg rounded-md mt-1">
@@ -125,9 +128,10 @@ export default function SchoolHeader({ setIsMenuOpen }) {
                 <li>
                     <button
                         onClick={() => toggleDropdown('students-mobile')}
-                        className="block w-full text-left px-4 py-3 active:bg-gray-700 transition-all duration-200"
+                        className="block w-full text-left px-4 py-3 active:bg-gray-700 transition-all duration-200 flex items-center"
                     >
                         Students
+                        <ChevronDown className="w-4 h-4 ml-1 text-gray-300" />
                     </button>
                     {openDropdown === 'students-mobile' && (
                         <ul className="pl-4">
@@ -157,9 +161,10 @@ export default function SchoolHeader({ setIsMenuOpen }) {
                 <li>
                     <button
                         onClick={() => toggleDropdown('teachers-mobile')}
-                        className="block w-full text-left px-4 py-3 active:bg-gray-700 transition-all duration-200"
+                        className="block w-full text-left px-4 py-3 active:bg-gray-700 transition-all duration-200 flex items-center"
                     >
                         Teachers
+                        <ChevronDown className="w-4 h-4 ml-1 text-gray-300" />
                     </button>
                     {openDropdown === 'teachers-mobile' && (
                         <ul className="pl-4">

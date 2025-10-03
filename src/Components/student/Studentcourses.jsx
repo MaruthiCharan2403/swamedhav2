@@ -15,7 +15,11 @@ const Studentcourses = () => {
         const response = await axios.get('/api/student/courses', {
           headers: { Authorization: `${sessionStorage.getItem('token')}` },
         });
-        setAssignedCourses(response.data.assignedCourses);
+        // Sort courses by levelName before setting state
+        const sortedCourses = [...response.data.assignedCourses].sort((a, b) => 
+          a.levelName.localeCompare(b.levelName)
+        );
+        setAssignedCourses(sortedCourses);
         setLoading(false);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to fetch courses');

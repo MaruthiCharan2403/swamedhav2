@@ -48,6 +48,12 @@ export default function AssignCourseToStudentModal() {
     return student.assignedCourses.some((course) => course.courseId === courseId);
   };
 
+  // Get assigned terms for a course
+  const getAssignedTerms = (student, courseId) => {
+    const assignedCourse = student.assignedCourses.find(course => course.courseId === courseId);
+    return assignedCourse ? assignedCourse.assignedTerms.map(term => term.termId) : [];
+  };
+
   // Open modal for a student
   const openModal = (student) => {
     setBulkMode(false);
@@ -82,9 +88,20 @@ export default function AssignCourseToStudentModal() {
   // Handle course selection
   const handleCourseSelect = (courseId) => {
     setSelectedCourse(courseId);
-    const course = enabledCourses.find((course) => course.courseId === courseId);
-    if (course && course.enabledTerms) {
-      setSelectedTerms(course.enabledTerms.filter(term => term.isEnabled).map(term => term.termId));
+    if (courseId && selectedStudent) {
+      // If course is already assigned, load its current terms
+      if (isCourseAssigned(selectedStudent, courseId)) {
+        const assignedTerms = getAssignedTerms(selectedStudent, courseId);
+        setSelectedTerms(assignedTerms);
+      } else {
+        // If new course, select all enabled terms by default
+        const course = enabledCourses.find((course) => course.courseId === courseId);
+        if (course && course.enabledTerms) {
+          setSelectedTerms(course.enabledTerms.filter(term => term.isEnabled).map(term => term.termId));
+        } else {
+          setSelectedTerms([]);
+        }
+      }
     } else {
       setSelectedTerms([]);
     }
@@ -99,34 +116,51 @@ export default function AssignCourseToStudentModal() {
     }
   };
 
-  // Assign course to a student
-  const assignCourse = async () => {
+  // Assign or update terms for a course
+  const assignOrUpdateCourseTerms = async () => {
     try {
       const selectedCourseObj = enabledCourses.find((course) => course.courseId === selectedCourse);
       const assignedTerms = selectedCourseObj.enabledTerms
         .filter(term => selectedTerms.includes(term.termId) && term.isEnabled)
         .map(term => ({ termId: term.termId, termName: term.termName }));
 
-      const response = await axios.post(
-        `/api/school/${selectedStudent._id}/add-course`,
-        {
-          courseId: selectedCourse,
-          levelName: selectedCourseObj.levelName,
-          assignedTerms
-        },
-        {
-          headers: {
-            'Authorization': sessionStorage.getItem('token')
+      // If course is already assigned, update terms
+      if (isCourseAssigned(selectedStudent, selectedCourse)) {
+        const response = await axios.patch(
+          `/api/student/${selectedStudent._id}/update-course-terms`,
+          {
+            courseId: selectedCourse,
+            assignedTerms
+          },
+          {
+            headers: {
+              'Authorization': sessionStorage.getItem('token')
+            }
           }
-        }
-      );
-
-      toast.success(response.data.message);
+        );
+        toast.success(response.data.message);
+      } else {
+        // Otherwise, assign course as before
+        const response = await axios.post(
+          `/api/school/${selectedStudent._id}/add-course`,
+          {
+            courseId: selectedCourse,
+            levelName: selectedCourseObj.levelName,
+            assignedTerms
+          },
+          {
+            headers: {
+              'Authorization': sessionStorage.getItem('token')
+            }
+          }
+        );
+        toast.success(response.data.message);
+      }
       closeModal();
       window.location.reload();
     } catch (error) {
       console.error(error);
-      toast.error('Failed to assign course. Please try again.');
+      toast.error('Failed to assign/update course terms. Please try again.');
     }
   };
 
@@ -134,7 +168,7 @@ export default function AssignCourseToStudentModal() {
   const removeCourse = async (courseId) => {
     try {
       const response = await axios.post(
-        `/api/school/${selectedStudent._id}/remove-course`,
+        `/api/student/${selectedStudent._id}/remove-course`,
         { courseId },
         {
           headers: {
@@ -405,92 +439,130 @@ export default function AssignCourseToStudentModal() {
             ) : (
               <>
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Manage Courses for {selectedStudent?.name}</h2>
-                {/* Course Selection */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Select Course</label>
-                  <select
-                    value={selectedCourse}
-                    onChange={(e) => handleCourseSelect(e.target.value)}
-                    className="p-2 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select a course</option>
-                    {enabledCourses.map((course) => (
-                      <option
-                        key={course.courseId}
-                        value={course.courseId}
-                        disabled={isCourseAssigned(selectedStudent, course.courseId)}
-                      >
-                        {course.levelName}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {/* Term Selection */}
-                {selectedCourse && (
-                  <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Select Terms</label>
-                    <div className="space-y-2">
-                      {enabledCourses
-                        .find((course) => course.courseId === selectedCourse)
-                        ?.enabledTerms
-                        .filter(term => term.isEnabled)
-                        .map((term) => (
-                          <div key={term.termId} className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              checked={selectedTerms.includes(term.termId)}
-                              onChange={() => handleTermSelect(term.termId)}
-                              className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                            />
-                            <span>{term.termName}</span>
+                
+                {/* Current Assigned Courses */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">Currently Assigned Courses</h3>
+                  {selectedStudent?.assignedCourses?.length > 0 ? (
+                    <div className="space-y-3">
+                      {selectedStudent.assignedCourses.map((assignedCourse) => {
+                        const courseInfo = enabledCourses.find(c => c.courseId === assignedCourse.courseId);
+                        return (
+                          <div key={assignedCourse.courseId} className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center justify-between">
+                            <div>
+                              <h4 className="font-medium text-green-800">{assignedCourse.levelName}</h4>
+                              <p className="text-sm text-green-600">
+                                Terms: {assignedCourse.assignedTerms.map(term => term.termName).join(', ')}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleCourseSelect(assignedCourse.courseId)}
+                                className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                              >
+                                Manage Terms
+                              </button>
+                              <button
+                                onClick={() => removeCourse(assignedCourse.courseId)}
+                                className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                              >
+                                Remove Course
+                              </button>
+                            </div>
                           </div>
-                        ))}
+                        );
+                      })}
                     </div>
-                  </div>
-                )}
-                {/* Status */}
+                  ) : (
+                    <p className="text-gray-500 italic">No courses assigned yet</p>
+                  )}
+                </div>
+
+                {/* Add New Course or Manage Selected Course */}
                 <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Course Status</label>
-                  <div className="space-y-2">
-                    {enabledCourses.map((course) => (
-                      <div key={course.courseId} className="flex items-center gap-2">
-                        <span>{course.levelName}:</span>
-                        {isCourseAssigned(selectedStudent, course.courseId) ? (
-                          <span className="text-green-600">Enabled</span>
-                        ) : (
-                          <span className="text-red-600">Not Enabled</span>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                    {selectedCourse ? 'Manage Course Terms' : 'Add New Course'}
+                  </h3>
+                  
+                  {/* Course Selection */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {selectedCourse ? 'Selected Course' : 'Select Course'}
+                    </label>
+                    <select
+                      value={selectedCourse}
+                      onChange={(e) => handleCourseSelect(e.target.value)}
+                      className="p-2 border border-gray-300 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select a course</option>
+                      {enabledCourses.map((course) => (
+                        <option key={course.courseId} value={course.courseId}>
+                          {course.levelName}
+                          {isCourseAssigned(selectedStudent, course.courseId) ? ' (Currently Assigned)' : ''}
+                        </option>
+                      ))}
+                    </select>
+                    {selectedCourse && (
+                      <button
+                        onClick={() => {
+                          setSelectedCourse('');
+                          setSelectedTerms([]);
+                        }}
+                        className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+                      >
+                        Clear Selection
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Term Selection */}
+                  {selectedCourse && (
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {isCourseAssigned(selectedStudent, selectedCourse) ? 'Update Terms' : 'Select Terms'}
+                      </label>
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <div className="space-y-2">
+                          {enabledCourses
+                            .find((course) => course.courseId === selectedCourse)
+                            ?.enabledTerms
+                            .filter(term => term.isEnabled)
+                            .map((term) => (
+                              <div key={term.termId} className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedTerms.includes(term.termId)}
+                                  onChange={() => handleTermSelect(term.termId)}
+                                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                                <span className="text-gray-800">{term.termName}</span>
+                              </div>
+                            ))}
+                        </div>
+                        {selectedTerms.length === 0 && (
+                          <p className="text-red-500 text-sm mt-2">Please select at least one term</p>
                         )}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  )}
                 </div>
+
                 {/* Actions */}
-                <div className="flex justify-end gap-4">
+                <div className="flex justify-end gap-4 pt-4 border-t">
                   <button
                     onClick={closeModal}
-                    className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                    className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500"
                   >
                     Close
                   </button>
-                  {selectedCourse && (
+                  {selectedCourse && selectedTerms.length > 0 && (
                     <button
-                      onClick={assignCourse}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      onClick={assignOrUpdateCourseTerms}
+                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
-                      Assign Course
+                      {isCourseAssigned(selectedStudent, selectedCourse) ? 'Update Terms' : 'Assign Course'}
                     </button>
                   )}
-                  {enabledCourses.map((course) => (
-                    isCourseAssigned(selectedStudent, course.courseId) && (
-                      <button
-                        key={course.courseId}
-                        onClick={() => removeCourse(course.courseId)}
-                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-                      >
-                        Remove Course
-                      </button>
-                    )
-                  ))}
                 </div>
               </>
             )}

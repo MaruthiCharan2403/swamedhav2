@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import axios from "axios";
 import { ToastContainer,toast } from "react-toastify";
 
-const Codeeditor = ({ levelId, termId, topicId,studentId}) => {
+const TeacherCodeEditor = ({ levelId, termId, topicId}) => {
   const editorContainerRef = useRef(null);
   const editorRef = useRef(null);
   const [lines, setLines] = useState(["1"]);
@@ -16,7 +16,7 @@ const Codeeditor = ({ levelId, termId, topicId,studentId}) => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `/api/student/${studentId}/fetch-codes`,
+        `/api/teacher/fetch-codes`,
         {
           params: { courseId: levelId, termId, topicId },
           headers: { Authorization: `${sessionStorage.getItem('token')}` },
@@ -31,7 +31,7 @@ const Codeeditor = ({ levelId, termId, topicId,studentId}) => {
   };
 
   useEffect(() => {
-    console.log("Props:", { levelId, termId, topicId, studentId });
+    console.log("Props:", { levelId, termId, topicId, });
     fetchCodes();
   }, []);
 
@@ -49,7 +49,7 @@ const Codeeditor = ({ levelId, termId, topicId,studentId}) => {
 
     try {
       const response = await axios.post(
-        `/api/student/${studentId}/store-code`,
+        `/api/teacher/store-code`,
         { 
           courseId: levelId, 
           termId, 
@@ -95,17 +95,6 @@ const Codeeditor = ({ levelId, termId, topicId,studentId}) => {
       setLines(["1"]);
     }
   };
-  // Handle date selection from dropdown
-  // const handleDateChange = (e) => {
-  //   const selectedCode = codes.find(
-  //     (code) => (code.dateSubmitted === e.target.value) || (code.name == e.target.value)
-  //   );
-  //   if (selectedCode) {
-  //     editorRef.current.innerText = selectedCode.code;
-  //     updateLineNumbers();
-  //   }
-  //   setSelectedDate(e.target.value);
-  // };
 
   // Handle paste event
   const handlePaste = (e) => {
@@ -213,4 +202,4 @@ const Codeeditor = ({ levelId, termId, topicId,studentId}) => {
   );
 };
 
-export default Codeeditor;
+export default TeacherCodeEditor;

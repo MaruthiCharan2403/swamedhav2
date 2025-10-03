@@ -42,6 +42,7 @@ const EditLevelPage = () => {
                                 contentPDF: "",
                                 contentVideo: "",
                                 keynotePDF: "",
+                                project: "",
                             },
                         ],
                     },
@@ -66,6 +67,7 @@ const EditLevelPage = () => {
                     contentPDF: "",
                     contentVideo: "",
                     keynotePDF: "",
+                    project: "",
                 },
             ],
         });
@@ -88,6 +90,7 @@ const EditLevelPage = () => {
             contentPDF: "",
             contentVideo: "",
             keynotePDF: "",
+            project: "",
         });
         setTerms(updatedTerms);
     };
@@ -261,6 +264,19 @@ const EditLevelPage = () => {
                                                                 onChange={(e) => {
                                                                     const updatedTerms = [...terms];
                                                                     updatedTerms[termIndex].topics[topicIndex].contents[contentIndex].keynotePDF = e.target.value;
+                                                                    setTerms(updatedTerms);
+                                                                }}
+                                                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                            />
+                                                        </div>
+                                                        <div className="mt-2">
+                                                            <label className="block text-sm font-medium text-gray-700">Project URL</label>
+                                                            <input
+                                                                type="text"
+                                                                value={content.project || ""}
+                                                                onChange={(e) => {
+                                                                    const updatedTerms = [...terms];
+                                                                    updatedTerms[termIndex].topics[topicIndex].contents[contentIndex].project = e.target.value;
                                                                     setTerms(updatedTerms);
                                                                 }}
                                                                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"

@@ -7,7 +7,7 @@ import {store} from './redux/store.js'
 import axios from 'axios'
 
 axios.defaults.baseURL ='https://api.swamedha.org'
-// axios.defaults.baseURL = 'http://localhost:5000'
+// axios.defaults.baseURL = 'http://localhost:5001'
 
 createRoot(document.getElementById('root')).render(
   <Provider store={store}>
